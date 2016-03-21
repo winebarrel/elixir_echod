@@ -8,6 +8,8 @@ defmodule EchodTest do
   end
 
   test "hearing an echo", %{socket: socket} do
+    :ok = :gen_tcp.send(socket, "Hello, world!\n")
+
     case :gen_tcp.recv(socket, 0) do
       {:ok, response} ->
         assert response == "Hello, world!\n"
