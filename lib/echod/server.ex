@@ -3,16 +3,22 @@ defmodule Echod.Server do
 
   def start(port) do
     {:ok, server} = :gen_tcp.listen(port, @options)
-    accept_client(server)
+    loop_acceptor(server)
   end
 
-  defp accept_client(server) do
+  defp loop_acceptor(server) do
     {:ok, client} = :gen_tcp.accept(server)
-    read_message(client)
+    {:ok, pid} = Task.Supervisor.start_child(Echod.TaskSupervisor, fn ->
+      read_message(client)
+    end)
+    :gen_tcp.controlling_process(client, pid)
+    loop_acceptor(server)
   end
 
   defp read_message(client) do
     case :gen_tcp.recv(client, 0) do
+      {:ok, "\r\n"} ->
+        :gen_tcp.close(client)
       {:ok, message} ->
         send_message(message, client)
         read_message(client)

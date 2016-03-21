@@ -5,6 +5,7 @@ defmodule Echod do
     import Supervisor.Spec
 
     children = [
+      supervisor(Task.Supervisor, [[name: Echod.TaskSupervisor]]),
       worker(Task, [Echod.Server, :start, [10007]])
     ]
 
